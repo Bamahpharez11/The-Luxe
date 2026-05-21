@@ -12,6 +12,7 @@ interface TrackedOrder {
   item: string
   itemName: string
   quantity: number
+  addOns: string[]
   date: string
   total: number
 }
@@ -139,6 +140,12 @@ export default function TrackPage() {
                   <span className="text-gray-500 uppercase tracking-widest text-xs">Item</span>
                   <span className="font-medium text-[#1a1209] text-right">{order.itemName} {order.quantity > 1 ? `(x${order.quantity})` : ''}</span>
                 </div>
+                {order.addOns && order.addOns.length > 0 && (
+                  <div className="flex justify-between border-b border-gray-100 pb-3">
+                    <span className="text-gray-500 uppercase tracking-widest text-xs">Add-Ons</span>
+                    <span className="font-medium text-[#1a1209] text-right">{order.addOns.join(', ')}</span>
+                  </div>
+                )}
                 <div className="flex justify-between border-b border-gray-100 pb-3">
                   <span className="text-gray-500 uppercase tracking-widest text-xs">Requested Date</span>
                   <span className="font-medium text-[#1a1209]">{order.date}</span>
