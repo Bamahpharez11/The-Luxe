@@ -1,6 +1,7 @@
-import sqlite3 from 'sqlite3'
-import { open, Database } from 'sqlite'
-import path from 'path'
+// ─────────────────────────────────────────────────────────────────
+//  ORDER STORE  — Mock database for Vercel Serverless Environment
+//  Works across Next.js hot-reloads via a module-level singleton.
+// ─────────────────────────────────────────────────────────────────
 
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled'
 export type OrderType   = 'pickup' | 'delivery'
@@ -10,9 +11,11 @@ export interface Order {
   createdAt:   string          // ISO timestamp
   updatedAt:   string
   status:      OrderStatus
+  // customer
   name:        string
-  phone:       string
+  phone:        string
   email?:      string
+  // order details
   item:        string          // menu item id
   itemName:    string          // human-readable name
   itemPrice:   number
@@ -21,105 +24,66 @@ export interface Order {
   orderType:   OrderType
   date:        string          // requested date
   notes:       string
+  // totals
   total:       number
 }
 
-let dbInstance: Database | null = null
-
-async function getDb() {
-  if (!dbInstance) {
-    dbInstance = await open({
-      filename: path.join(process.cwd(), 'orders.db'),
-      driver: sqlite3.Database
-    })
-    
-    await dbInstance.exec(`
-      CREATE TABLE IF NOT EXISTS orders (
-        id TEXT PRIMARY KEY,
-        createdAt TEXT,
-        updatedAt TEXT,
-        status TEXT,
-        name TEXT,
-        phone TEXT,
-        email TEXT,
-        item TEXT,
-        itemName TEXT,
-        itemPrice REAL,
-        addOns TEXT,
-        quantity INTEGER,
-        orderType TEXT,
-        date TEXT,
-        notes TEXT,
-        total REAL
-      )
-    `)
-  }
-  return dbInstance
+// Singleton store — survives Next.js hot-module replacement
+declare global {
+  // eslint-disable-next-line no-var
+  var __orderStore: Order[] | undefined
 }
 
-function mapRowToOrder(row: any): Order {
-  return {
-    ...row,
-    addOns: JSON.parse(row.addOns || '[]')
+function getStore(): Order[] {
+  if (!global.__orderStore) {
+    global.__orderStore = seedOrders()
   }
+  return global.__orderStore
 }
 
 // ── CRUD helpers ──────────────────────────────────────────────────
 
 export async function getAllOrders(): Promise<Order[]> {
-  const db = await getDb()
-  const rows = await db.all('SELECT * FROM orders ORDER BY createdAt DESC')
-  return rows.map(mapRowToOrder)
+  return [...getStore()].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
 }
 
 export async function getOrderById(id: string): Promise<Order | undefined> {
-  const db = await getDb()
-  const row = await db.get('SELECT * FROM orders WHERE id = ?', id)
-  if (!row) return undefined
-  return mapRowToOrder(row)
+  return getStore().find((o) => o.id === id)
 }
 
 export async function createOrder(data: Omit<Order, 'id' | 'createdAt' | 'updatedAt' | 'status'>): Promise<Order> {
-  const db = await getDb()
   const now = new Date().toISOString()
   const order: Order = {
     ...data,
-    id: generateId(),
+    id:        generateId(),
     createdAt: now,
     updatedAt: now,
-    status: 'pending'
+    status:    'pending',
   }
-  
-  await db.run(`
-    INSERT INTO orders (id, createdAt, updatedAt, status, name, phone, email, item, itemName, itemPrice, addOns, quantity, orderType, date, notes, total)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `, [
-    order.id, order.createdAt, order.updatedAt, order.status, order.name, order.phone, order.email || '',
-    order.item, order.itemName, order.itemPrice, JSON.stringify(order.addOns), order.quantity, order.orderType,
-    order.date, order.notes || '', order.total
-  ])
-  
+  getStore().push(order)
   return order
 }
 
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<Order | null> {
-  const db = await getDb()
-  const now = new Date().toISOString()
-  
-  const result = await db.run('UPDATE orders SET status = ?, updatedAt = ? WHERE id = ?', [status, now, id])
-  if (result.changes === 0) return null
-  
-  return await getOrderById(id) as Order
+  const store = getStore()
+  const idx = store.findIndex((o) => o.id === id)
+  if (idx === -1) return null
+  store[idx] = { ...store[idx], status, updatedAt: new Date().toISOString() }
+  return store[idx]
 }
 
 export async function deleteOrder(id: string): Promise<boolean> {
-  const db = await getDb()
-  const result = await db.run('DELETE FROM orders WHERE id = ?', id)
-  return (result.changes ?? 0) > 0
+  const store = getStore()
+  const idx = store.findIndex((o) => o.id === id)
+  if (idx === -1) return false
+  store.splice(idx, 1)
+  return true
 }
 
 export async function getOrderStats() {
-  const orders = await getAllOrders()
+  const orders = getStore()
   const revenue = orders
     .filter((o) => o.status !== 'cancelled')
     .reduce((sum, o) => sum + o.total, 0)
@@ -152,4 +116,32 @@ export async function getOrderStats() {
 
 function generateId(): string {
   return 'TLC-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase()
+}
+
+function daysAgo(n: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() - n)
+  return d.toISOString()
+}
+
+// ── Seed data — realistic sample orders ──────────────────────────
+function seedOrders(): Order[] {
+  return [
+    {
+      id: 'TLC-SEED001', createdAt: daysAgo(0), updatedAt: daysAgo(0),
+      status: 'pending', name: 'Aisha Thompson', phone: '703-555-0192',
+      item: 'signature-luxe-breakfast-tray', itemName: 'Signature Luxe Breakfast Tray',
+      itemPrice: 65, addOns: ['Extra Fruit Cup'], quantity: 1, orderType: 'delivery',
+      date: new Date().toISOString().split('T')[0], notes: 'Birthday surprise — please include a note!',
+      total: 69,
+    },
+    {
+      id: 'TLC-SEED002', createdAt: daysAgo(0), updatedAt: daysAgo(0),
+      status: 'confirmed', name: 'Marcus Reed', phone: '571-555-0284',
+      item: 'date-night-dessert-box', itemName: 'Date Night Dessert Box',
+      itemPrice: 60, addOns: [], quantity: 1, orderType: 'pickup',
+      date: new Date().toISOString().split('T')[0], notes: 'Anniversary dinner.',
+      total: 60,
+    },
+  ]
 }
