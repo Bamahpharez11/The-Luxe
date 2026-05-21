@@ -1,7 +1,6 @@
-// ─────────────────────────────────────────────────────────────────
-//  ORDER STORE  — in-memory database (replace with a real DB in prod)
-//  Works across Next.js hot-reloads via a module-level singleton.
-// ─────────────────────────────────────────────────────────────────
+import sqlite3 from 'sqlite3'
+import { open, Database } from 'sqlite'
+import path from 'path'
 
 export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled'
 export type OrderType   = 'pickup' | 'delivery'
@@ -11,11 +10,9 @@ export interface Order {
   createdAt:   string          // ISO timestamp
   updatedAt:   string
   status:      OrderStatus
-  // customer
   name:        string
-  phone:        string
+  phone:       string
   email?:      string
-  // order details
   item:        string          // menu item id
   itemName:    string          // human-readable name
   itemPrice:   number
@@ -24,66 +21,105 @@ export interface Order {
   orderType:   OrderType
   date:        string          // requested date
   notes:       string
-  // totals
   total:       number
 }
 
-// Singleton store — survives Next.js hot-module replacement
-declare global {
-  // eslint-disable-next-line no-var
-  var __orderStore: Order[] | undefined
+let dbInstance: Database | null = null
+
+async function getDb() {
+  if (!dbInstance) {
+    dbInstance = await open({
+      filename: path.join(process.cwd(), 'orders.db'),
+      driver: sqlite3.Database
+    })
+    
+    await dbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id TEXT PRIMARY KEY,
+        createdAt TEXT,
+        updatedAt TEXT,
+        status TEXT,
+        name TEXT,
+        phone TEXT,
+        email TEXT,
+        item TEXT,
+        itemName TEXT,
+        itemPrice REAL,
+        addOns TEXT,
+        quantity INTEGER,
+        orderType TEXT,
+        date TEXT,
+        notes TEXT,
+        total REAL
+      )
+    `)
+  }
+  return dbInstance
 }
 
-function getStore(): Order[] {
-  if (!global.__orderStore) {
-    global.__orderStore = seedOrders()
+function mapRowToOrder(row: any): Order {
+  return {
+    ...row,
+    addOns: JSON.parse(row.addOns || '[]')
   }
-  return global.__orderStore
 }
 
 // ── CRUD helpers ──────────────────────────────────────────────────
 
-export function getAllOrders(): Order[] {
-  return [...getStore()].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
+export async function getAllOrders(): Promise<Order[]> {
+  const db = await getDb()
+  const rows = await db.all('SELECT * FROM orders ORDER BY createdAt DESC')
+  return rows.map(mapRowToOrder)
 }
 
-export function getOrderById(id: string): Order | undefined {
-  return getStore().find((o) => o.id === id)
+export async function getOrderById(id: string): Promise<Order | undefined> {
+  const db = await getDb()
+  const row = await db.get('SELECT * FROM orders WHERE id = ?', id)
+  if (!row) return undefined
+  return mapRowToOrder(row)
 }
 
-export function createOrder(data: Omit<Order, 'id' | 'createdAt' | 'updatedAt' | 'status'>): Order {
+export async function createOrder(data: Omit<Order, 'id' | 'createdAt' | 'updatedAt' | 'status'>): Promise<Order> {
+  const db = await getDb()
   const now = new Date().toISOString()
   const order: Order = {
     ...data,
-    id:        generateId(),
+    id: generateId(),
     createdAt: now,
     updatedAt: now,
-    status:    'pending',
+    status: 'pending'
   }
-  getStore().push(order)
+  
+  await db.run(`
+    INSERT INTO orders (id, createdAt, updatedAt, status, name, phone, email, item, itemName, itemPrice, addOns, quantity, orderType, date, notes, total)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `, [
+    order.id, order.createdAt, order.updatedAt, order.status, order.name, order.phone, order.email || '',
+    order.item, order.itemName, order.itemPrice, JSON.stringify(order.addOns), order.quantity, order.orderType,
+    order.date, order.notes || '', order.total
+  ])
+  
   return order
 }
 
-export function updateOrderStatus(id: string, status: OrderStatus): Order | null {
-  const store = getStore()
-  const idx = store.findIndex((o) => o.id === id)
-  if (idx === -1) return null
-  store[idx] = { ...store[idx], status, updatedAt: new Date().toISOString() }
-  return store[idx]
+export async function updateOrderStatus(id: string, status: OrderStatus): Promise<Order | null> {
+  const db = await getDb()
+  const now = new Date().toISOString()
+  
+  const result = await db.run('UPDATE orders SET status = ?, updatedAt = ? WHERE id = ?', [status, now, id])
+  if (result.changes === 0) return null
+  
+  return await getOrderById(id) as Order
 }
 
-export function deleteOrder(id: string): boolean {
-  const store = getStore()
-  const idx = store.findIndex((o) => o.id === id)
-  if (idx === -1) return false
-  store.splice(idx, 1)
-  return true
+export async function deleteOrder(id: string): Promise<boolean> {
+  const db = await getDb()
+  const result = await db.run('DELETE FROM orders WHERE id = ?', id)
+  return (result.changes ?? 0) > 0
 }
 
-export function getOrderStats() {
-  const orders = getStore()
+export async function getOrderStats() {
+  const orders = await getAllOrders()
   const revenue = orders
     .filter((o) => o.status !== 'cancelled')
     .reduce((sum, o) => sum + o.total, 0)
@@ -116,64 +152,4 @@ export function getOrderStats() {
 
 function generateId(): string {
   return 'TLC-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase()
-}
-
-function daysAgo(n: number): string {
-  const d = new Date()
-  d.setDate(d.getDate() - n)
-  return d.toISOString()
-}
-
-// ── Seed data — realistic sample orders ──────────────────────────
-function seedOrders(): Order[] {
-  return [
-    {
-      id: 'TLC-SEED001', createdAt: daysAgo(0), updatedAt: daysAgo(0),
-      status: 'pending', name: 'Aisha Thompson', phone: '703-555-0192',
-      item: 'signature-luxe-breakfast-tray', itemName: 'Signature Luxe Breakfast Tray',
-      itemPrice: 65, addOns: ['Extra Fruit Cup'], quantity: 1, orderType: 'delivery',
-      date: new Date().toISOString().split('T')[0], notes: 'Birthday surprise — please include a note!',
-      total: 69,
-    },
-    {
-      id: 'TLC-SEED002', createdAt: daysAgo(0), updatedAt: daysAgo(0),
-      status: 'confirmed', name: 'Marcus Reed', phone: '571-555-0284',
-      item: 'date-night-dessert-box', itemName: 'Date Night Dessert Box',
-      itemPrice: 60, addOns: [], quantity: 1, orderType: 'pickup',
-      date: new Date().toISOString().split('T')[0], notes: 'Anniversary dinner.',
-      total: 60,
-    },
-    {
-      id: 'TLC-SEED003', createdAt: daysAgo(1), updatedAt: daysAgo(1),
-      status: 'completed', name: 'Priya Nair', phone: '703-555-0371',
-      item: 'girls-night-sweets-box', itemName: "Girls' Night Sweets Box",
-      itemPrice: 70, addOns: ['Extra Juice', 'Yogurt Parfait'], quantity: 2, orderType: 'delivery',
-      date: daysAgo(1).split('T')[0], notes: 'Bachelorette party, 6 guests.',
-      total: 154,
-    },
-    {
-      id: 'TLC-SEED004', createdAt: daysAgo(1), updatedAt: daysAgo(1),
-      status: 'completed', name: 'Jordan Williams', phone: '571-555-0448',
-      item: 'executive-brunch-box', itemName: 'Executive Brunch Box',
-      itemPrice: 28, addOns: [], quantity: 3, orderType: 'pickup',
-      date: daysAgo(1).split('T')[0], notes: 'Team meeting.',
-      total: 84,
-    },
-    {
-      id: 'TLC-SEED005', createdAt: daysAgo(2), updatedAt: daysAgo(2),
-      status: 'completed', name: 'Fatima Hassan', phone: '703-555-0519',
-      item: 'sweet-tooth-luxe-box', itemName: 'Sweet Tooth Luxe Box',
-      itemPrice: 32, addOns: ['Extra Fruit Cup'], quantity: 1, orderType: 'delivery',
-      date: daysAgo(2).split('T')[0], notes: '',
-      total: 36,
-    },
-    {
-      id: 'TLC-SEED006', createdAt: daysAgo(3), updatedAt: daysAgo(3),
-      status: 'cancelled', name: 'Devon Carter', phone: '571-555-0663',
-      item: 'luxe-duo-brunch', itemName: 'Luxe Duo Brunch',
-      itemPrice: 45, addOns: [], quantity: 1, orderType: 'pickup',
-      date: daysAgo(3).split('T')[0], notes: 'Had to cancel, family emergency.',
-      total: 45,
-    },
-  ]
 }

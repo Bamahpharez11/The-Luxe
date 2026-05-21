@@ -6,7 +6,7 @@ type Params = { params: { id: string } }
 
 // ── GET /api/orders/[id] ──────────────────────────────────────────
 export async function GET(_req: NextRequest, { params }: Params) {
-  const order = getOrderById(params.id)
+  const order = await getOrderById(params.id)
   if (!order) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 })
   }
@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       )
     }
 
-    const updated = updateOrderStatus(params.id, parsed.data.status)
+    const updated = await updateOrderStatus(params.id, parsed.data.status)
     if (!updated) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
@@ -40,7 +40,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
 // ── DELETE /api/orders/[id] ───────────────────────────────────────
 export async function DELETE(_req: NextRequest, { params }: Params) {
-  const deleted = deleteOrder(params.id)
+  const deleted = await deleteOrder(params.id)
   if (!deleted) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 })
   }

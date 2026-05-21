@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createOrder, getAllOrders, getOrderStats } from '@/lib/order-store'
 import { createOrderSchema } from '@/lib/validations'
 import { menuItems } from '@/lib/menu-data'
+import { sendOrderConfirmationEmail } from '@/lib/email'
 
 // ── GET /api/orders — list all orders + stats (admin) ─────────────
 export async function GET(req: NextRequest) {
@@ -9,14 +10,14 @@ export async function GET(req: NextRequest) {
   const statsOnly = searchParams.get('stats') === 'true'
 
   if (statsOnly) {
-    return NextResponse.json({ stats: getOrderStats() })
+    return NextResponse.json({ stats: await getOrderStats() })
   }
 
   const status = searchParams.get('status')
-  let orders = getAllOrders()
+  let orders = await getAllOrders()
   if (status) orders = orders.filter((o) => o.status === status)
 
-  return NextResponse.json({ orders, stats: getOrderStats() })
+  return NextResponse.json({ orders, stats: await getOrderStats() })
 }
 
 // ── POST /api/orders — submit a new order ─────────────────────────
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
     const serverTotal = (menuItem.price + addOnTotal) * data.quantity
 
     // Create order
-    const order = createOrder({
+    const order = await createOrder({
       name:      data.name,
       phone:     data.phone,
       email:     data.email,
@@ -69,8 +70,8 @@ export async function POST(req: NextRequest) {
       total:     serverTotal,
     })
 
-    // In production: send email notification here
-    // await sendOrderConfirmationEmail(order)
+    // Send email notification to owner
+    await sendOrderConfirmationEmail(order)
 
     return NextResponse.json(
       { success: true, order, message: 'Order received! We\'ll confirm within 24 hours.' },
