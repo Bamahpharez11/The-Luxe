@@ -14,7 +14,7 @@ export default function Order() {
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
   const [quantity, setQuantity] = useState(1)
   const [form, setForm] = useState({
-    name: '', phone: '', email: '', item: '', date: '', notes: '',
+    name: '', phone: '', email: '', deliveryAddress: '', item: '', date: '', notes: '',
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -254,6 +254,20 @@ export default function Order() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Delivery Address */}
+                  {orderType === 'delivery' && (
+                    <div className="animate-fade-in">
+                      <label className="block text-white/50 text-xs tracking-widest uppercase mb-2" style={{ fontFamily: 'var(--font-jost)' }}>Delivery Address *</label>
+                      <input type="text" name="deliveryAddress" required value={form.deliveryAddress} onChange={handleChange}
+                        placeholder="Street address, city, zip code"
+                        className="w-full px-4 py-3 text-white placeholder-white/25 text-sm focus:outline-none transition-colors"
+                        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', fontFamily: 'var(--font-jost)' }}
+                        onFocus={e => e.currentTarget.style.borderColor = 'rgba(201,137,29,0.6)'}
+                        onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+                      />
+                    </div>
+                  )}
 
                   {/* Notes */}
                   <div>

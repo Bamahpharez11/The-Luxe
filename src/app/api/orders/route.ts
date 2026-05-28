@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
       name:      data.name,
       phone:     data.phone,
       email:     data.email,
+      deliveryAddress: data.deliveryAddress,
       item:      data.item,
       itemName:  menuItem.name,
       itemPrice: menuItem.price,

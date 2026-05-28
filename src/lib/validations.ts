@@ -10,6 +10,7 @@ export const createOrderSchema = z.object({
   addOns:    z.array(z.string()).default([]),
   quantity:  z.number().int().min(1).max(50).default(1),
   orderType: z.enum(['pickup', 'delivery']),
+  deliveryAddress: z.string().optional().or(z.literal('')),
   date:      z.string().min(1, 'Please select a date'),
   notes:     z.string().max(500).default(''),
   total:     z.number().positive(),

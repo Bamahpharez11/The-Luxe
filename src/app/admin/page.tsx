@@ -267,6 +267,7 @@ export default function AdminPage() {
                   { label: 'Quantity',   value: String(selected.quantity) },
                   { label: 'Add-Ons',    value: selected.addOns.length ? selected.addOns.join(', ') : 'None' },
                   { label: 'Order Type', value: selected.orderType },
+                  ...(selected.orderType === 'delivery' ? [{ label: 'Address', value: selected.deliveryAddress || '—' }] : []),
                   { label: 'Date',       value: selected.date },
                   { label: 'Notes',      value: selected.notes || '—' },
                   { label: 'Created',    value: fmtDate(selected.createdAt) },

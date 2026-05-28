@@ -11,10 +11,10 @@ export interface Order {
   createdAt:   string          // ISO timestamp
   updatedAt:   string
   status:      OrderStatus
-  // customer
   name:        string
   phone:        string
   email?:      string
+  deliveryAddress?: string
   // order details
   item:        string          // menu item id
   itemName:    string          // human-readable name
