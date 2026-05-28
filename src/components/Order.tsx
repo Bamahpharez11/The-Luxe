@@ -124,7 +124,7 @@ export default function Order() {
                     We&apos;ll call you within 24 hours to confirm. Thank you for supporting our small business! ♡
                   </p>
                   <button
-                    onClick={() => { setFormState('idle'); setConfirmedOrder(null); setForm({ name:'', phone:'', email:'', item:'', date:'', notes:'' }); setSelectedAddOns([]); setQuantity(1) }}
+                    onClick={() => { setFormState('idle'); setConfirmedOrder(null); setForm({ name:'', phone:'', email:'', deliveryAddress:'', item:'', date:'', notes:'' }); setSelectedAddOns([]); setQuantity(1) }}
                     className="px-6 py-2.5 text-xs tracking-widest uppercase"
                     style={{ background: 'linear-gradient(135deg, #e8bf5e, #c9891d)', color: '#1a1209', fontFamily: 'var(--font-jost)', fontWeight: 600, letterSpacing: '0.14em' }}
                   >
