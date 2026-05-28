@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import type { Order, OrderStatus } from '@/lib/order-store'
 
 const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string; dot: string }> = {
@@ -21,6 +22,7 @@ interface Stats {
 }
 
 export default function AdminPage() {
+  const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [filter, setFilter] = useState<OrderStatus | 'all'>('all')
@@ -77,6 +79,12 @@ export default function AdminPage() {
     await fetchOrders()
   }
 
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    router.push('/admin/login')
+    router.refresh()
+  }
+
   const filtered = filter === 'all' ? orders : orders.filter((o) => o.status === filter)
 
   const fmtDate = (iso: string) =>
@@ -106,6 +114,9 @@ export default function AdminPage() {
           <a href="/" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'none' }}>
             ← Back to Site
           </a>
+          <button onClick={handleLogout} style={{ color: '#f87171', background: 'none', border: 'none', fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            Logout
+          </button>
         </div>
       </header>
 
