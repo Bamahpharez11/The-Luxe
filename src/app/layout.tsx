@@ -35,7 +35,37 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="grain">{children}</body>
+      <body className="grain">
+        {/* Local Business JSON-LD Structured Data for Google */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Bakery",
+              "name": "The Luxe Confectionery",
+              "image": "https://luxeconfectionery.com/images/signature-luxe-breakfast-tray.png",
+              "@id": "https://luxeconfectionery.com",
+              "url": "https://luxeconfectionery.com",
+              "telephone": "571-580-3998",
+              "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Woodbridge",
+                "addressRegion": "VA",
+                "addressCountry": "US"
+              },
+              "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": 38.6582,
+                "longitude": -77.2497
+              },
+              "priceRange": "$$",
+              "servesCuisine": "Desserts, Breakfast, Pastries"
+            })
+          }}
+        />
+        {children}
+      </body>
     </html>
   )
 }
