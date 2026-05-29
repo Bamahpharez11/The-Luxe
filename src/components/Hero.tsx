@@ -62,7 +62,7 @@ export default function Hero() {
               className="text-[#c9891d] tracking-[0.35em] uppercase text-xs font-medium"
               style={{ fontFamily: 'var(--font-jost)' }}
             >
-              Woodbridge, Virginia
+              The Luxe Confectionery
             </span>
           </div>
 
