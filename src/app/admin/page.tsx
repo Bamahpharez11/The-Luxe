@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Order, OrderStatus } from '@/lib/order-store'
+import AnalyticsDashboard from './AnalyticsDashboard'
 
 const STATUS_COLORS: Record<OrderStatus, { bg: string; text: string; dot: string }> = {
   pending:   { bg: 'rgba(251,191,36,0.12)',  text: '#fbbf24', dot: '#fbbf24' },
@@ -23,8 +24,9 @@ interface Stats {
 
 export default function AdminPage() {
   const router = useRouter()
+  const [activeTab, setActiveTab] = useState<'orders' | 'analytics'>('orders')
   const [orders, setOrders] = useState<Order[]>([])
-  const [stats, setStats] = useState<Stats | null>(null)
+  const [stats, setStats] = useState<any>(null)
   const [filter, setFilter] = useState<OrderStatus | 'all'>('all')
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
@@ -120,10 +122,41 @@ export default function AdminPage() {
         </div>
       </header>
 
+      {/* Tabs */}
+      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '0 2rem' }}>
+        <div style={{ display: 'flex', gap: '2rem' }}>
+          {(['orders', 'analytics'] as const).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '1rem 0',
+                color: activeTab === tab ? '#e8bf5e' : 'rgba(255,255,255,0.4)',
+                borderBottom: activeTab === tab ? '2px solid #e8bf5e' : '2px solid transparent',
+                textTransform: 'uppercase',
+                letterSpacing: '0.12em',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-jost)',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem' }}>
-        {/* Stats row */}
-        {stats && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        {activeTab === 'analytics' ? (
+          <AnalyticsDashboard orders={orders} />
+        ) : (
+          <>
+            {/* Stats row */}
+            {stats && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
             {[
               { label: "Today's Orders", value: stats.todayCount, sub: `$${stats.todayRevenue} revenue` },
               { label: 'Total Orders',   value: stats.total,      sub: `$${stats.totalRevenue} total` },
@@ -323,6 +356,8 @@ export default function AdminPage() {
             </div>
           )}
         </div>
+          </>
+        )}
       </div>
     </div>
   )
