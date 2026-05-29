@@ -3,7 +3,26 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'The Luxe Confectionery — Woodbridge, Virginia',
-  description: 'Premium breakfast boxes & dessert trays made fresh to order. Beautiful presentation. Unforgettable experience.',
+  description: 'Premium breakfast boxes & dessert trays made fresh to order. Beautiful presentation. Unforgettable experience in Woodbridge, VA.',
+  keywords: ['bakery', 'confectionery', 'breakfast boxes', 'dessert trays', 'Woodbridge', 'Virginia', 'custom cakes', 'pastries', 'gifts', 'The Luxe Confectionery'],
+  openGraph: {
+    title: 'The Luxe Confectionery',
+    description: 'Premium breakfast boxes & dessert trays made fresh to order in Woodbridge, VA.',
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'The Luxe Confectionery',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 }
 
 export default function RootLayout({
