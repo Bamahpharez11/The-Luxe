@@ -23,6 +23,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  verification: {
+    google: 'googled5811edafd888ffc.html', // We add both formats just in case
+  },
 }
 
 export default function RootLayout({
