@@ -120,8 +120,14 @@ export default function Order() {
                   <p className="text-[#e8bf5e] mb-3" style={{ fontFamily: 'var(--font-cormorant)', fontSize: '1.5rem' }}>
                     Total: ${confirmedOrder.total}
                   </p>
-                  <p className="text-white/50 text-sm mb-6" style={{ fontFamily: 'var(--font-jost)' }}>
-                    We&apos;ll call you within 24 hours to confirm. Thank you for supporting our small business! ♡
+                  <div className="bg-black/20 p-4 rounded-lg mx-6 mb-6 text-sm text-white/80" style={{ border: '1px solid rgba(232,191,94,0.15)', fontFamily: 'var(--font-jost)' }}>
+                    <p className="mb-2 uppercase tracking-widest text-xs text-[#c9891d]">Payment Required</p>
+                    <p className="mb-1">Please send your payment of <strong className="text-white">${confirmedOrder.total}</strong> via Zelle to:</p>
+                    <p className="font-mono text-lg text-[#e8bf5e] font-bold tracking-wider mb-2">571-580-3998</p>
+                    <p className="text-white/40 text-xs">Include Order #{confirmedOrder.id} in the Zelle memo.</p>
+                  </div>
+                  <p className="text-white/50 text-sm mb-6 px-4" style={{ fontFamily: 'var(--font-jost)' }}>
+                    Your order will be processed once payment is received. Thank you for supporting our small business! ♡
                   </p>
                   <button
                     onClick={() => { setFormState('idle'); setConfirmedOrder(null); setForm({ name:'', phone:'', email:'', deliveryAddress:'', item:'', date:'', notes:'' }); setSelectedAddOns([]); setQuantity(1) }}

@@ -132,6 +132,15 @@ export default function TrackPage() {
                 <p className="text-sm text-[#5c4020]/80" style={{ fontFamily: 'var(--font-jost)' }}>
                   {STATUS_MESSAGES[order.status].desc}
                 </p>
+
+                {order.status === 'pending' && (
+                  <div className="mt-6 bg-white/60 p-4 rounded text-sm text-left shadow-sm" style={{ border: '1px solid rgba(201,137,29,0.2)' }}>
+                    <p className="mb-2 uppercase tracking-widest text-xs text-[#a0785a]" style={{ fontFamily: 'var(--font-jost)' }}>Awaiting Payment</p>
+                    <p className="text-[#1a1209] mb-1 font-medium">Please send <strong className="text-[#c9891d]">${order.total}</strong> via Zelle to:</p>
+                    <p className="font-mono text-lg text-[#1a1209] font-bold tracking-wider mb-2">571-580-3998</p>
+                    <p className="text-[#5c4020]/70 text-xs">Include Order #{order.id} in the memo.</p>
+                  </div>
+                )}
               </div>
 
               {/* Details */}
