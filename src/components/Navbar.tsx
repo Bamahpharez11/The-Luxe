@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Menu, X, Phone } from 'lucide-react'
 
 const navLinks = [
@@ -33,19 +34,15 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between h-20">
           {/* Logo */}
-          <Link href="/" className="flex flex-col leading-none group">
-            <span
-              className="font-display text-xs tracking-[0.35em] uppercase text-[#c9891d] font-light"
-              style={{ fontFamily: 'var(--font-cormorant)' }}
-            >
-              The
-            </span>
-            <span
-              className="font-display text-2xl font-semibold tracking-[0.08em] text-white"
-              style={{ fontFamily: 'var(--font-cormorant)' }}
-            >
-              Luxe <span className="gold-text">Confectionery</span>
-            </span>
+          <Link href="/" className="flex items-center group">
+            <Image 
+              src="/images/logo.jpg" 
+              alt="The Luxe Confectionery Logo" 
+              width={160} 
+              height={50} 
+              className="object-cover h-[50px] w-auto rounded shadow-sm transition-transform duration-300 group-hover:scale-105"
+              priority
+            />
           </Link>
 
           {/* Desktop Links */}
