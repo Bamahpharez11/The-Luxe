@@ -163,19 +163,35 @@ export default function Menu() {
                   >
                     {item.priceNote ?? `$${item.price}`}
                   </span>
-                  <a
-                    href="#order"
-                    className="px-4 py-1.5 text-xs font-semibold tracking-widest uppercase transition-all duration-300 hover:scale-105"
-                    style={{
-                      background: 'linear-gradient(135deg, #e8bf5e 0%, #c9891d 100%)',
-                      color: '#1a1209',
-                      fontFamily: 'var(--font-jost)',
-                      letterSpacing: '0.1em',
-                      fontSize: '0.62rem',
-                    }}
-                  >
-                    Order
-                  </a>
+                  {item.category === 'dessert' ? (
+                    <span
+                      className="px-4 py-1.5 text-xs font-semibold tracking-widest uppercase transition-all duration-300"
+                      style={{
+                        background: 'rgba(255,255,255,0.1)',
+                        color: 'rgba(255,255,255,0.5)',
+                        fontFamily: 'var(--font-jost)',
+                        letterSpacing: '0.1em',
+                        fontSize: '0.62rem',
+                        cursor: 'not-allowed',
+                      }}
+                    >
+                      Coming Soon
+                    </span>
+                  ) : (
+                    <a
+                      href="#order"
+                      className="px-4 py-1.5 text-xs font-semibold tracking-widest uppercase transition-all duration-300 hover:scale-105"
+                      style={{
+                        background: 'linear-gradient(135deg, #e8bf5e 0%, #c9891d 100%)',
+                        color: '#1a1209',
+                        fontFamily: 'var(--font-jost)',
+                        letterSpacing: '0.1em',
+                        fontSize: '0.62rem',
+                      }}
+                    >
+                      Order
+                    </a>
+                  )}
                 </div>
               </div>
             </div>

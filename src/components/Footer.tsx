@@ -74,7 +74,6 @@ export default function Footer() {
                 { label: 'Dessert Collection', href: '#menu' },
                 { label: 'Gallery', href: '#gallery' },
                 { label: 'Order Now', href: '#order' },
-                { label: 'Admin Dashboard', href: '/admin' },
               ].map((l) => (
                 <li key={l.label}>
                   <Link

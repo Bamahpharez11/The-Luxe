@@ -1,0 +1,15 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth/login/route": "app/api/auth/login/route.js",
+  "/admin/page": "app/admin/page.js",
+  "/api/menu/route": "app/api/menu/route.js",
+  "/api/orders/[id]/route": "app/api/orders/[id]/route.js",
+  "/api/auth/logout/route": "app/api/auth/logout/route.js",
+  "/api/orders/route": "app/api/orders/route.js",
+  "/page": "app/page.js",
+  "/robots.txt/route": "app/robots.txt/route.js",
+  "/sitemap.xml/route": "app/sitemap.xml/route.js",
+  "/admin/login/page": "app/admin/login/page.js",
+  "/track/page": "app/track/page.js",
+  "/icon.jpg/route": "app/icon.jpg/route.js"
+}

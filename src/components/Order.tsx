@@ -97,6 +97,7 @@ export default function Order() {
           </h2>
           <p className="text-[#5c4020]/60 mt-3 max-w-md mx-auto" style={{ fontFamily: 'var(--font-jost)', fontWeight: 300, fontSize: '0.95rem' }}>
             Fill out the form and we&apos;ll confirm your order within 24 hours. Every box made fresh.
+            <br/><strong className="text-[#c9891d]">Note: Order must be made at least 24 hours prior to requested pickup or delivery date.</strong>
           </p>
         </div>
 
@@ -194,8 +195,8 @@ export default function Order() {
                       </optgroup>
                       <optgroup label="── Dessert Collection ──" style={{ background: '#231808' }}>
                         {menuItems.filter(m => m.category === 'dessert').map(m => (
-                          <option key={m.id} value={m.id} style={{ background: '#231808' }}>
-                            {m.name} — {m.priceNote ?? `$${m.price}`}
+                          <option key={m.id} value={m.id} disabled style={{ background: '#231808', color: 'rgba(255,255,255,0.4)' }}>
+                            {m.name} (Coming Soon) — {m.priceNote ?? `$${m.price}`}
                           </option>
                         ))}
                       </optgroup>
@@ -238,7 +239,7 @@ export default function Order() {
                     <div>
                       <label className="block text-white/50 text-xs tracking-widest uppercase mb-2" style={{ fontFamily: 'var(--font-jost)' }}>Requested Date *</label>
                       <input type="date" name="date" required value={form.date} onChange={handleChange}
-                        min={new Date().toISOString().split('T')[0]}
+                        min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
                         className="w-full px-4 py-3 text-white text-sm focus:outline-none transition-colors"
                         style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', fontFamily: 'var(--font-jost)', colorScheme: 'dark' }}
                         onFocus={e => e.currentTarget.style.borderColor = 'rgba(201,137,29,0.6)'}
